@@ -41,6 +41,18 @@ yarn.lock
 media/
 *.log
 
+# Video files (raw footage, renders, previews - never commit media)
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.webm
+*.m4v
+*.mpg
+*.mpeg
+*.wmv
+*.flv
+
 # CapCut writer: local project templates + cutplan fixtures contain the
 # user's personal absolute media/draft paths — never commit them.
 capcut_templates/
