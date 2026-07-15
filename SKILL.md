@@ -44,7 +44,13 @@ The skill lives in `video-use/`. User footage lives wherever they put it. All se
 └── edit/
     ├── project.md               ← memory; appended every session
     ├── takes_packed.md          ← phrase-level transcripts, the LLM's primary reading view
-    ├── edl.json                 ← cut decisions
+    ├── edl.json                 ← cut decisions (mp4 render path)
+    ├── analysis.md              ← CapCut prep: source facts + editor brief + Shorts-cue hints
+    ├── cutplan.skeleton.json    ← CapCut prep: sources + canvas, empty cut (editor starting point)
+    ├── cutplan.json             ← CapCut editor output: Main ranges + Shorts (writer input)
+    ├── review.md                ← CapCut human review gate (rendered from cutplan.json)
+    ├── assembled.md             ← CapCut post-cut read-back: assembled transcript per timeline + tripwires
+    ├── silences.json            ← CapCut cached ffmpeg silencedetect intervals (edge-air snapping)
     ├── transcripts/<name>.json  ← cached raw Scribe JSON
     ├── animations/slot_<id>/    ← per-animation source + render + reasoning
     ├── clips_graded/            ← per-segment extracts with grade + fades
@@ -77,6 +83,7 @@ Helpers (`helpers/transcribe.py`, `helpers/render.py`, etc.) live alongside this
 - **`timeline_view.py <video> <start> <end>`** — filmstrip + waveform PNG. On-demand visual drill-down. **Not a scan tool** — use it at decision points, not constantly.
 - **`render.py <edl.json> -o <out>`** — per-segment extract → concat → overlays (PTS-shifted) → subtitles LAST. `--preview` for 720p fast. `--build-subtitles` to generate master.srt inline.
 - **`grade.py <in> -o <out>`** — ffmpeg filter chain grade. Presets + `--filter '<raw>'` for custom.
+- **`capcut_pipeline.py {prep,review,write}`** — the CapCut project output path (see "CapCut project output" below). `prep <videos_dir>` → `analysis.md` + `cutplan.skeleton.json`; `review <cutplan.json>` → `review.md` gate; `write <cutplan.json> --project-name NAME` → native CapCut project. Wraps the proven `capcut_write.py` writer.
 
 For animations, create `<edit>/animations/slot_<id>/` with `Bash` and spawn a sub-agent via the `Agent` tool.
 
@@ -86,7 +93,7 @@ For animations, create `<edit>/animations/slot_<id>/` with `Bash` and spawn a su
 2. **Pre-scan for problems.** One pass over `takes_packed.md` to note verbal slips, obvious mis-speaks, or phrasings to avoid. Plain list, feed into the editor brief.
 3. **Converse.** Describe what you see in plain English. Ask questions *shaped by the material*. Collect: content type, target length/aspect, aesthetic/brand direction, pacing feel, must-preserve moments, must-cut moments, animation and grade preferences, subtitle needs. Do not use a fixed checklist — the right questions are different every time.
 4. **Propose strategy.** 4–8 sentences: shape, take choices, cut direction, animation plan, grade direction, subtitle style, length estimate. **Wait for confirmation.**
-5. **Execute.** Produce `edl.json` via the editor sub-agent brief. Drill into `timeline_view` at ambiguous moments. Build animations in parallel sub-agents. Apply grade per-segment. Compose via `render.py`.
+5. **Execute.** Produce `edl.json` via the editor sub-agent brief. Drill into `timeline_view` at ambiguous moments. Build animations in parallel sub-agents. Apply grade per-segment. Compose via `render.py`. **Or**, when the user wants an editable native project from a synced cam+screen recording, take the CapCut path instead (see "CapCut project output"): `prep` → editor `cutplan.json` → `review.md` gate → `write`.
 6. **Preview.** `render.py --preview`.
 7. **Self-eval (before showing the user).** Run `timeline_view` on the **rendered output** (not the sources) at every cut boundary (±1.5s window). Check each image for:
    - Visual discontinuity / flash / jump at the cut
@@ -287,6 +294,99 @@ Match the source unless the user asked for something specific. Common targets: `
 ```
 
 `grade` is a preset name or raw ffmpeg filter. `overlays` are rendered animation clips. `subtitles` is optional and applied LAST.
+
+## CapCut project output (alternative to `render.py`)
+
+There are **two Execute targets**. `render.py` bakes a finished `.mp4`. The CapCut pipeline instead emits a **native, editable CapCut Desktop project** — a Main long-form rough cut (`longform-pip`) plus 3–5 vertical Shorts (`short-switch`), each its own timeline — that the creator opens and finishes by hand. Use it when the user wants an editable project (not a locked render), and when the source is a **synced cam + screen recording** (talking head + screen capture of the same session).
+
+The writer is proven (M1–M3): it clones real CapCut project files and rewrites only media paths + segment arrays, so schema validity is guaranteed. It composites the screen with a camera picture-in-picture live, carries the voice continuously from the cam audio, adds the effect/music beds, and builds each Short as a 9:16 punch-in. Schema + track model live in [helpers/capcut/FORMAT.md](helpers/capcut/FORMAT.md).
+
+**Pipeline (staged, deterministic — [helpers/capcut_pipeline.py](helpers/capcut_pipeline.py)):**
+
+1. **`prep <videos_dir>`** — `ffprobe` both sources, transcribe the **cam** (voice source, cached — Hard Rule 9), pack transcripts, scan for Shorts-announcement cues. Emits `edit/analysis.md` (facts + editor brief + cue hints) and `edit/cutplan.skeleton.json`.
+2. **Editor sub-agent** — reads `takes_packed.md`, produces `edit/cutplan.json` (brief below). This is the taste step; keep it an LLM decision, no heuristics (Principle 1).
+3. **`review <cutplan.json>`** — lints (hard errors abort) and renders `edit/review.md` (sources, Main cut table, editorial notes, Shorts) plus `edit/assembled.md`, the **post-cut read-back**: the actual assembled transcript of every timeline reconstructed from the transcript words in the kept ranges, with tripwires for restated openings / broken-off / mid-thought endings. **Read assembled.md top-to-bottom per timeline and fix the cutplan until each reads as clean continuous speech, THEN present the human gate — wait for confirmation (Hard Rule 11) before writing.**
+4. **`write <cutplan.json> --project-name NAME`** — invokes the writer and registers the project. The writer adds silence-aware air (~0.1–0.3s) to every cut edge automatically (`ffmpeg silencedetect`, cached `edit/silences.json`). Restart CapCut to see it.
+
+Everything the editor reasons about is in **cam time** (the transcript is cam audio); the writer derives the screen source via `sync_offset_ms`.
+
+**Cutplan editor sub-agent brief** (mirrors the EDL brief above; outputs `cutplan.json`, not an EDL array):
+
+```
+You are the CapCut cutplan editor. Read takes_packed.md (cam transcript = the
+voice track) and produce edit/cutplan.json. Reason in cam time (seconds into
+the cam file). Do NOT edit the CapCut project directly.
+
+INPUTS:
+  - takes_packed.md, product/narrative context, speaker note, target runtime
+  - edit/cutplan.skeleton.json (copy sources + canvas from it)
+  - edit/analysis.md (source facts + Shorts-cue hint lines)
+
+ABORTED / INCOMPLETE TAKES (drop these):
+  - A take that ends mid-sentence or trails into "..." with no resolution is an
+    OUTTAKE - drop the broken-off fragment entirely.
+  - When the same sentence is started several times, keep ONLY the last clean,
+    COMPLETE delivery; drop every earlier false start. Repeated opening words
+    across consecutive phrases are the signature of restarts.
+  - analysis.md lists concrete candidates (trailing "..." + repeated openings);
+    treat them as hints and confirm by reading the surrounding lines.
+
+STRUCTURE MARKERS ("Anweisung" cues, when present):
+  - The creator may say the trigger word "Anweisung" right before each section:
+    "Anweisung, jetzt kommt das Intro", "Anweisung: Hauptteil", "Anweisung,
+    erste Tail Short", "Anweisung: Call-to-Action fuer Shorts", etc.
+  - When present, analysis.md lists every hit under "Structure markers" -
+    treat these as AUTHORITATIVE section boundaries: everything from one
+    marker up to the next belongs to that section. Drop the marker phrase
+    itself ("Anweisung, ...") from the cut - it's a directive, not content.
+  - No markers in this recording? Fall back to inferring structure from
+    content and the Shorts-cue-word hints (the pre-convention approach).
+
+MAIN timeline (long-form rough cut, preset "longform-pip"):
+  - Assemble chronologically; drop dead air, flubs, false starts.
+  - Tag each range `visual`:
+      "cam"    — creator talking to camera IS the subject (hook, asides, outro)
+      "screen" — the screen is the subject (demos, walkthroughs); the writer
+                 composites screen + a camera PiP live.
+  - Pick each edge on a word boundary; the writer adds silence-aware air (~0.1–0.3s)
+    automatically, so land start on the first word and end on the last - do NOT hand-pad.
+  - `beat`/`quote`/`reason` per range; `reason` surfaces in review.md.
+
+POST-CUT READ-BACK (required before approval - feedback points 2 + 3):
+  - After a draft cutplan, run `review`; read edit/assembled.md (the actual
+    assembled transcript per timeline, Main + every Short incl. the CTA).
+  - Each timeline MUST read like clean continuous speech: no sentence said twice
+    in a row (even paraphrased - the tripwires catch only literal repeats, YOU
+    catch the rest), no broken-off fragments, no range ending mid-thought.
+  - Fix cutplan.json (tighten to the clean take; extend a truncated range to its
+    natural sentence end) and re-run `review` until every timeline reads cleanly.
+
+SHORTS (3–5 standalone vertical clips, 15–30s each):
+  - Pull the strongest self-contained hooks from the FULL transcript, not just
+    what made the Main cut. Each Short is a hook + main part, as a list of cam
+    ranges (jump cuts ok). Give each a punchy `name` + `hook`.
+  - Do NOT make the call-to-action its own short (see CTA below).
+
+TAIL SHORTS + CTA (spoken labels; "Anweisung" cues preferred, else semantic):
+  - Preferred: segment directly by "Anweisung" markers (see STRUCTURE MARKERS
+    above), e.g. "Anweisung, erste Tail Short" / "Anweisung, zweite Tail
+    Short" / "Anweisung: Call-to-Action".
+  - Fallback (no "Anweisung" cues here): the creator announces on camera,
+    right before each, which is the first tail short, which is the second,
+    and which is the call-to-action. Segment the tail by those spoken labels.
+  - Either way: everything from one label up to the next is that short (keep
+    its clean hook+main take; drop restarts). Set "tail": true on tail shorts.
+  - The clip labelled call-to-action goes in the top-level `cta` block, NOT in
+    `shorts`. The writer appends the CTA to the end of EVERY short (regular and
+    tail), so specify it once. The analysis.md cue-hint lines are candidates
+    only; you decide by reading the transcript.
+
+OUTPUT: edit/cutplan.json (schema in helpers/capcut/FORMAT.md), including an
+optional top-level "cta": {"quote": "...", "ranges": [{"start","end"}]}. Return
+a one-line runtime check for the Main cut and the Shorts count.
+```
+
+The rest of the taste guidance (Cut craft, padding, silence targets) applies unchanged. The new decisions are the `cam`/`screen` visual tag, the Shorts proposals, and the CTA. The writer also leaves ~0.75s of end-air after the last word (main + shorts) and adds an uncut `Raw` timeline. Deferred in this path: subtitles/grade/overlays (CapCut finishes those), per-Short music selection, and media-mode copy.
 
 ## Memory — `project.md`
 

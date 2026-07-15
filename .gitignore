@@ -41,6 +41,11 @@ yarn.lock
 media/
 *.log
 
+# CapCut writer: local project templates + cutplan fixtures contain the
+# user's personal absolute media/draft paths — never commit them.
+capcut_templates/
+03_GoogleOmniFlash-testProject/
+
 # Session artifacts if someone invokes the skill inside the project dir
 # (normally outputs go to <videos_dir>/edit/ — keep these as a safety net)
 edit/
