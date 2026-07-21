@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="de"
+  data-composition-variables='[
+    {"id":"accent","type":"color","label":"Akzentfarbe","default":"#ff004a"},
+    {"id":"big","type":"string","label":"Hook-Wort (Block)","default":"GRATIS"},
+    {"id":"sub","type":"string","label":"Subline","default":"und schlägt Nano Banana 2"}
+  ]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1080px; height: 1920px; overflow: hidden;
+        background: transparent;
+        font-family: "Inter", sans-serif;
+      }
+      #hook {
+        position: absolute; left: 70px; top: 230px; width: 940px;
+        text-align: center;
+      }
+      .big {
+        display: inline-block; background: var(--accent, #ff004a); color: #ffffff;
+        font-size: 172px; font-weight: 800; line-height: 0.98; letter-spacing: -0.02em;
+        padding: 8px 34px 20px; border-radius: 14px;
+      }
+      #big { will-change: clip-path; }
+      .sub {
+        margin-top: 30px; font-size: 82px; font-weight: 800; line-height: 1.05;
+        color: #ffffff; text-shadow: 0 3px 16px rgba(0,0,0,0.6);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="4.4"
+         data-width="1080" data-height="1920" data-fps="50">
+      <div id="hook" class="clip" data-start="0" data-duration="4.4" data-track-index="0">
+        <div id="bigrow"><span id="big" class="big" data-var-text="big">GRATIS</span></div>
+        <div id="sub" class="sub" data-var-text="sub">und schlägt Nano Banana 2</div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      // ENTRY
+      tl.fromTo("#big",
+        { clipPath: "inset(0 100% 0 0)" },
+        { clipPath: "inset(0 0% 0 0)", duration: 0.6, ease: "power3.out" }, 0.15);
+      tl.from("#bigrow", { y: 26, duration: 0.6, ease: "power3.out" }, 0.15);
+      tl.from("#sub", { opacity: 0, y: 26, duration: 0.5, ease: "power3.out" }, 0.75);
+      // OUTRO
+      tl.to("#hook", { opacity: 0, y: -30, duration: 0.55, ease: "power2.in" }, 3.75);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="de"
+  data-composition-variables='[
+    {"id":"accent","type":"color","label":"Akzentfarbe","default":"#ff004a"},
+    {"id":"line1","type":"string","label":"Zeile darüber","default":"Und das Beste:"},
+    {"id":"highlight","type":"string","label":"Highlight-Wort","default":"KOSTENLOS"}
+  ]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: transparent;
+        font-family: "Inter", sans-serif;
+      }
+      #wrap { position: absolute; left: 150px; top: 360px; }
+      .line1 {
+        font-size: 88px; font-weight: 700; color: #ffffff;
+        text-shadow: 0 2px 14px rgba(0,0,0,0.55); margin-bottom: 26px;
+      }
+      /* Pink highlight block behind the payoff word. Wipes open via clip-path. */
+      .hl {
+        display: inline-block; background: var(--accent, #ff004a); color: #ffffff;
+        font-size: 152px; font-weight: 800; letter-spacing: -0.01em;
+        padding: 12px 40px 22px; border-radius: 12px;
+      }
+      #hl { will-change: clip-path; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="4.4"
+         data-width="1920" data-height="1080" data-fps="50">
+      <div id="wrap" class="clip" data-start="0" data-duration="4.4" data-track-index="0">
+        <div id="line1" class="line1" data-var-text="line1">Und das Beste:</div>
+        <div id="hlrow">
+          <span id="hl" class="hl" data-var-text="highlight">KOSTENLOS</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      // ENTRY
+      tl.from("#line1", { opacity: 0, y: 24, duration: 0.5, ease: "power3.out" }, 0.0);
+      tl.fromTo("#hl",
+        { clipPath: "inset(0 100% 0 0)" },
+        { clipPath: "inset(0 0% 0 0)", duration: 0.6, ease: "power3.out" }, 0.5);
+      tl.from("#hlrow", { y: 20, duration: 0.6, ease: "power3.out" }, 0.5);
+      // OUTRO
+      tl.to("#wrap", { opacity: 0, y: -24, duration: 0.55, ease: "power2.in" }, 3.75);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

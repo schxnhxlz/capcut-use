@@ -1,0 +1,6 @@
+{
+  "name": "motiongfx_studio",
+  "private": true,
+  "type": "module",
+  "description": "Standalone, editable HyperFrames motion-graphics templates rendered to alpha video. Use ./preview.sh <template> to edit in Studio and ./render.sh <template> [mov|webm] to render."
+}

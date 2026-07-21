@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="de"
+  data-composition-variables='[
+    {"id":"accent","type":"color","label":"Akzentfarbe","default":"#ff004a"},
+    {"id":"eyebrow","type":"string","label":"Eyebrow (klein, oben)","default":"Text-to-Image Arena"},
+    {"id":"number","type":"string","label":"Zahl / Wert","default":"#3","placeholder":"z. B. #3 oder 50"},
+    {"id":"unit","type":"string","label":"Einheit","default":"Platz","placeholder":"z. B. Platz, %"},
+    {"id":"captionPre","type":"string","label":"Caption (weiss)","default":"vor "},
+    {"id":"captionAccent","type":"string","label":"Caption Highlight (Akzent)","default":"Nano Banana Pro & 2"}
+  ]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: transparent;
+        font-family: "Inter", sans-serif;
+      }
+      /* Vertical centering via a flex wrapper — NOT a CSS transform on #stat,
+         because the outro tween animates #stat's y and would discard it. */
+      #statwrap { position: absolute; inset: 0; display: flex; align-items: center; }
+      #stat { margin-left: 150px; }
+      .eyebrow {
+        font-size: 34px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+        color: #ffffff; text-shadow: 0 2px 12px rgba(0,0,0,0.55); margin-bottom: 30px;
+      }
+      .figure { display: flex; align-items: baseline; gap: 26px; }
+      #num {
+        font-size: 320px; font-weight: 800; line-height: 1;
+        letter-spacing: -0.04em; color: var(--accent, #ff004a);
+        text-shadow: 0 4px 22px rgba(0,0,0,0.4); font-variant-numeric: tabular-nums;
+      }
+      .unit { font-size: 104px; font-weight: 800; color: #ffffff; text-shadow: 0 2px 14px rgba(0,0,0,0.55); }
+      .caption {
+        font-size: 42px; font-weight: 600; color: #ffffff; margin-top: 30px;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.55);
+      }
+      .caption b { color: var(--accent, #ff004a); font-weight: 800; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="4.4"
+         data-width="1920" data-height="1080" data-fps="50">
+      <div id="statwrap">
+      <div id="stat" class="clip" data-start="0" data-duration="4.4" data-track-index="0">
+        <div id="eyebrow" class="eyebrow" data-var-text="eyebrow">Text-to-Image Arena</div>
+        <div class="figure" id="figure">
+          <div id="num" data-var-text="number">#3</div>
+          <div class="unit" data-var-text="unit">Platz</div>
+        </div>
+        <div id="caption" class="caption">
+          <span data-var-text="captionPre">vor </span><b data-var-text="captionAccent">Nano Banana Pro &amp; 2</b>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      // ENTRY
+      tl.from("#eyebrow", { opacity: 0, y: 18, duration: 0.4, ease: "power3.out" }, 0.0);
+      tl.from("#figure", { opacity: 0, scale: 0.7, transformOrigin: "left bottom",
+                           duration: 0.6, ease: "back.out(1.8)" }, 0.25);
+      tl.from("#caption", { opacity: 0, y: 18, duration: 0.5, ease: "power3.out" }, 0.75);
+      // OUTRO
+      tl.to("#stat", { opacity: 0, y: -24, duration: 0.55, ease: "power2.in" }, 3.75);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="de"
+  data-composition-variables='[
+    {"id":"accent","type":"color","label":"Akzentfarbe","default":"#ff004a"},
+    {"id":"kicker","type":"string","label":"Kicker (oben)","default":"Gefällt dir das?"},
+    {"id":"highlight","type":"string","label":"CTA Highlight","default":"ABONNIEREN"},
+    {"id":"subline","type":"string","label":"Subline","default":"für mehr KI-Deep-Dives"}
+  ]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: transparent;
+        font-family: "Inter", sans-serif;
+      }
+      #cta { position: absolute; left: 130px; bottom: 170px; }
+      .kicker {
+        font-size: 34px; font-weight: 700; letter-spacing: 0.28em;
+        text-transform: uppercase; color: #ffffff; margin-bottom: 18px;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.55);
+      }
+      .hl {
+        display: inline-block; background: var(--accent, #ff004a); color: #ffffff;
+        font-size: 132px; font-weight: 800; letter-spacing: -0.01em;
+        padding: 12px 38px 20px; border-radius: 12px;
+      }
+      #hl { will-change: clip-path; }
+      .subline {
+        margin-top: 24px; font-size: 46px; font-weight: 600; color: #ffffff;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.55);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="4.4"
+         data-width="1920" data-height="1080" data-fps="50">
+      <div id="cta" class="clip" data-start="0" data-duration="4.4" data-track-index="0">
+        <div id="kicker" class="kicker" data-var-text="kicker">Gefällt dir das?</div>
+        <div id="hlrow">
+          <span id="hl" class="hl" data-var-text="highlight">ABONNIEREN</span>
+        </div>
+        <div id="subline" class="subline" data-var-text="subline">für mehr KI-Deep-Dives</div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      // ENTRY
+      tl.from("#kicker", { opacity: 0, x: -30, duration: 0.5, ease: "power3.out" }, 0.1);
+      tl.fromTo("#hl",
+        { clipPath: "inset(0 100% 0 0)" },
+        { clipPath: "inset(0 0% 0 0)", duration: 0.6, ease: "power3.out" }, 0.45);
+      tl.from("#hlrow", { y: 20, duration: 0.6, ease: "power3.out" }, 0.45);
+      tl.from("#subline", { opacity: 0, y: 22, duration: 0.5, ease: "power3.out" }, 1.1);
+      // OUTRO
+      tl.to("#cta", { opacity: 0, y: -26, duration: 0.55, ease: "power2.in" }, 3.75);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

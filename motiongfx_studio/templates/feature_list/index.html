@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="de"
+  data-composition-variables='[
+    {"id":"accent","type":"color","label":"Akzentfarbe","default":"#ff004a"},
+    {"id":"title","type":"string","label":"Titel","default":"Was kann Muse Image"},
+    {"id":"item1pre","type":"string","label":"Zeile 1 – Text","default":"Mehrere "},
+    {"id":"item1hi","type":"string","label":"Zeile 1 – Highlight","default":"Bildreferenzen"},
+    {"id":"item1post","type":"string","label":"Zeile 1 – Text danach","default":""},
+    {"id":"item2pre","type":"string","label":"Zeile 2 – Text","default":""},
+    {"id":"item2hi","type":"string","label":"Zeile 2 – Highlight","default":"Reasoning"},
+    {"id":"item2post","type":"string","label":"Zeile 2 – Text danach","default":" Layer"},
+    {"id":"item3pre","type":"string","label":"Zeile 3 – Text","default":"~"},
+    {"id":"item3hi","type":"string","label":"Zeile 3 – Highlight","default":"2K"},
+    {"id":"item3post","type":"string","label":"Zeile 3 – Text danach","default":" Auflösung"}
+  ]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: transparent;
+        font-family: "Inter", sans-serif;
+      }
+      #list { position: absolute; left: 150px; top: 290px; display: flex; flex-direction: column; gap: 36px; }
+      .title {
+        font-size: 42px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+        color: var(--accent, #ff004a); margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.45);
+      }
+      .row { display: flex; align-items: center; gap: 30px; }
+      .marker { width: 36px; height: 36px; border-radius: 9px; background: var(--accent, #ff004a); flex: 0 0 auto; transform-origin: center; }
+      .label { font-size: 64px; font-weight: 800; color: #ffffff; text-shadow: 0 2px 14px rgba(0,0,0,0.55); }
+      .label b { color: var(--accent, #ff004a); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="4.8"
+         data-width="1920" data-height="1080" data-fps="50">
+      <div id="list" class="clip" data-start="0" data-duration="4.8" data-track-index="0">
+        <div id="title" class="title" data-var-text="title">Was kann Muse Image</div>
+        <div class="row" id="r1">
+          <div class="marker" id="m1"></div><div class="label"><span data-var-text="item1pre">Mehrere </span><b data-var-text="item1hi">Bildreferenzen</b><span data-var-text="item1post"></span></div>
+        </div>
+        <div class="row" id="r2">
+          <div class="marker" id="m2"></div><div class="label"><span data-var-text="item2pre"></span><b data-var-text="item2hi">Reasoning</b><span data-var-text="item2post"> Layer</span></div>
+        </div>
+        <div class="row" id="r3">
+          <div class="marker" id="m3"></div><div class="label"><span data-var-text="item3pre">~</span><b data-var-text="item3hi">2K</b><span data-var-text="item3post"> Auflösung</span></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      // ENTRY — one row at a time (never reveal two new things at once).
+      tl.from("#title", { opacity: 0, y: 18, duration: 0.4, ease: "power3.out" }, 0.0);
+      const rows = ["#r1", "#r2", "#r3"];
+      const marks = ["#m1", "#m2", "#m3"];
+      rows.forEach((r, i) => {
+        const t = 0.35 + i * 0.5;
+        tl.from(r, { opacity: 0, x: -36, duration: 0.45, ease: "power3.out" }, t);
+        tl.from(marks[i], { scale: 0, duration: 0.4, ease: "back.out(2)" }, t + 0.05);
+      });
+      // OUTRO
+      tl.to("#list", { opacity: 0, y: -24, duration: 0.55, ease: "power2.in" }, 4.15);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

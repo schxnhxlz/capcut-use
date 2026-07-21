@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="de" data-composition-variables="[
+    {&quot;id&quot;:&quot;accent&quot;,&quot;type&quot;:&quot;color&quot;,&quot;label&quot;:&quot;Akzentfarbe&quot;,&quot;default&quot;:&quot;#ff004a&quot;},
+    {&quot;id&quot;:&quot;kicker&quot;,&quot;type&quot;:&quot;string&quot;,&quot;label&quot;:&quot;Kicker (klein, oben)&quot;,&quot;default&quot;:&quot;META&quot;,&quot;placeholder&quot;:&quot;z. B. META&quot;},
+    {&quot;id&quot;:&quot;headline&quot;,&quot;type&quot;:&quot;string&quot;,&quot;label&quot;:&quot;Headline&quot;,&quot;default&quot;:&quot;MUSE IMAGE&quot;,&quot;placeholder&quot;:&quot;Hauptzeile&quot;},
+    {&quot;id&quot;:&quot;subline&quot;,&quot;type&quot;:&quot;string&quot;,&quot;label&quot;:&quot;Subline&quot;,&quot;default&quot;:&quot;Metas erstes eigenes KI-Bildmodell&quot;}
+  ]">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: transparent;
+        font-family: "Inter", sans-serif;
+      }
+      /* Lower-third, no full-bleed scrim (would leave a hard edge when moved). */
+      #lt { position: absolute; left: 130px; bottom: 160px; }
+      .kicker {
+        font-size: 32px; font-weight: 700; letter-spacing: 0.34em;
+        text-transform: uppercase; color: var(--accent, #ff004a); margin-bottom: 14px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.45);
+      }
+      .headline {
+        font-size: 132px; font-weight: 800; line-height: 0.94;
+        letter-spacing: -0.02em; color: #ffffff;
+        text-shadow: 0 3px 16px rgba(0,0,0,0.55);
+      }
+      #bar {
+        margin-top: 22px; width: 560px; height: 8px; border-radius: 4px;
+        background: var(--accent, #ff004a); transform-origin: left center;
+      }
+      .subline {
+        margin-top: 22px; font-size: 44px; font-weight: 600; color: #ffffff;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.55);
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-swjq" id="root" data-composition-id="main" data-start="0" data-duration="4.4" data-width="1920" data-height="1080" data-fps="50">
+      <div data-hf-id="hf-earm" id="lt" class="clip" data-start="0" data-duration="4.4" data-track-index="0">
+        <div data-hf-id="hf-4mab" id="kicker" class="kicker" data-var-text="kicker">META</div>
+        <div data-hf-id="hf-vhok" id="headline" class="headline" data-var-text="headline">MUSE IMAGE</div>
+        <div data-hf-id="hf-2to0" id="bar"></div>
+        <div data-hf-id="hf-mu98" id="subline" class="subline" data-var-text="subline">Metas erstes eigenes KI-Bildmodell</div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      // ENTRY
+      tl.from("#kicker", { opacity: 0, x: -34, duration: 0.5, ease: "power3.out" }, 0.1);
+      tl.from("#headline", { opacity: 0, y: 44, duration: 0.6, ease: "power3.out" }, 0.35);
+      tl.from("#bar", { scaleX: 0, duration: 0.5, ease: "power2.inOut" }, 0.85);
+      tl.from("#subline", { opacity: 0, y: 22, duration: 0.5, ease: "power3.out" }, 1.2);
+      // OUTRO — whole group exits so the clip is self-contained.
+      tl.to("#lt", { opacity: 0, y: -26, duration: 0.55, ease: "power2.in" }, 3.75);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
