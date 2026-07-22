@@ -289,6 +289,10 @@ TAIL SHORTS + CTA (spoken labels; "Anweisung" cues preferred, else semantic):
     tail by those spoken labels the same way.
   - Either way: everything from one label up to the next is that short (keep
     its clean hook+main take; drop restarts). Set "tail": true on tail shorts.
+  - LENGTH: tail shorts are recorded separately and self-contained, so they MAY
+    run longer than the 15-30s guideline. Keep the full clean take - do NOT trim
+    a tail short just to hit a target length (only cut restarts/flubs). The
+    review length warning is suppressed for tail shorts on the upper bound.
   - The clip labelled call-to-action goes in the top-level `cta` block, NOT in
     `shorts`. The writer appends the CTA to the end of EVERY short (regular and
     tail), so you only specify it once.

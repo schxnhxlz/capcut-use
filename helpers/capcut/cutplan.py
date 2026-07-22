@@ -105,10 +105,19 @@ def lint_cutplan(
         for j, r in enumerate(sh_ranges):
             _lint_range(f"{label}.ranges[{j}]", r, cam_dur_s, errors, require_visual=False)
         total = _pack_total_s(sh_ranges)
-        if sh_ranges and not (SHORT_MIN_S <= total <= SHORT_MAX_S):
-            warnings.append(
-                f"{label}: total {total:.1f}s outside {SHORT_MIN_S:.0f}-{SHORT_MAX_S:.0f}s guideline"
-            )
+        # Tail shorts are recorded separately and self-contained, so they may
+        # intentionally run LONGER than the 15-30s guideline (creator preference:
+        # do not trim them just to fit). Only flag a tail short when it's too short.
+        if sh_ranges:
+            if sh.get("tail"):
+                if total < SHORT_MIN_S:
+                    warnings.append(
+                        f"{label}: total {total:.1f}s under {SHORT_MIN_S:.0f}s guideline"
+                    )
+            elif not (SHORT_MIN_S <= total <= SHORT_MAX_S):
+                warnings.append(
+                    f"{label}: total {total:.1f}s outside {SHORT_MIN_S:.0f}-{SHORT_MAX_S:.0f}s guideline"
+                )
 
     # cta (optional; appended to every short, not a short itself)
     cta = cutplan.get("cta")
